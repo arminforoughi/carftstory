@@ -10,7 +10,7 @@ try {
 } catch (error) {
   console.warn('Failed to initialize Anthropic client:', error.message);
 }
-
+// tests
 // Helper function to create a fallback story
 function createFallbackStory(childName, childAge, childInterest) {
   console.log('Creating fallback story');
