@@ -1,19 +1,20 @@
 const { Anthropic } = require('@anthropic-ai/sdk');
 
+// Store API key in a variable for direct access
+const apiKey = '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';
+
 // Initialize Anthropic client (only if API key is valid)
 let anthropic = null;
 try {
   anthropic = new Anthropic({
-    apiKey: process.env.ANTHROPIC_API_KEY || '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',
+    apiKey: apiKey,
   });
-  console.log('Anthropic client initialized successfully');
 } catch (error) {
   console.warn('Failed to initialize Anthropic client:', error.message);
 }
 
 // Helper function to create a fallback story
 function createFallbackStory(childName, childAge, childInterest) {
-  console.log('Creating fallback story');
   return {
     title: `${childName}'s Adventure with ${childInterest}`,
     childName: childName,
@@ -94,7 +95,7 @@ async function generateStory(childName, childAge, childInterest) {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'x-api-key': anthropic.apiKey,
+        'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
         'content-type': 'application/json'
       },
@@ -110,6 +111,13 @@ async function generateStory(childName, childAge, childInterest) {
 
     const responseData = await response.json();
     console.log('prompt:', prompt);
+    
+    // Check if the response has the expected structure
+    if (!responseData || !responseData.content || !Array.isArray(responseData.content) || responseData.content.length === 0) {
+      console.error('Invalid response from Claude API:', JSON.stringify(responseData));
+      return createFallbackStory(childName, childAge, childInterest);
+    }
+    
     console.log('Story generated:', responseData.content[0].text);
 
     // Extract and parse the JSON from the response
@@ -214,7 +222,7 @@ async function continueStory(story, currentPage, selectedOption) {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'x-api-key': anthropic.apiKey,
+        'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
         'content-type': 'application/json'
       },
@@ -229,6 +237,12 @@ async function continueStory(story, currentPage, selectedOption) {
     });
 
     const responseData = await response.json();
+    
+    // Check if the response has the expected structure
+    if (!responseData || !responseData.content || !Array.isArray(responseData.content) || responseData.content.length === 0) {
+      console.error('Invalid response from Claude API for continuation:', JSON.stringify(responseData));
+      throw new Error('Invalid response from Claude API');
+    }
 
     // Extract and parse the JSON from the response
     const jsonMatch = responseData.content[0].text.match(/```json\n([\s\S]*?)\n```/) || 
@@ -256,9 +270,9 @@ async function continueStory(story, currentPage, selectedOption) {
   } catch (error) {
     console.error('Error continuing story:', error);
     
-    // Create fallback continuation
+    // Fallback continuation
     const currentPageData = story.pages[currentPage];
-    const selectedChoice = currentPageData.options ? currentPageData.options[selectedOption] : "continue the adventure";
+    const selectedChoice = currentPageData.options[selectedOption];
     
     // Create fallback continuation pages
     const newPages = [
@@ -282,9 +296,7 @@ async function continueStory(story, currentPage, selectedOption) {
     ];
     
     // Remove options from the current page
-    if (currentPageData.options) {
-      delete story.pages[currentPage].options;
-    }
+    delete story.pages[currentPage].options;
     
     // Add new pages to the story
     return {
