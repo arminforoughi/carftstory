@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+```javascript
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import './StoryCreator.css'; // Import a CSS file for styles
 
 function StoryCreator() {
   const [formData, setFormData] = useState({
@@ -10,6 +12,30 @@ function StoryCreator() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  
+  // User interaction tracking
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollDepth = Math.round((window.scrollY / document.documentElement.scrollHeight) * 100);
+      console.log(`Scroll Depth: ${scrollDepth}%`);
+    };
+
+    const handleTimeSpent = () => {
+      const startTime = Date.now();
+      const interval = setInterval(() => {
+        console.log(`Time spent on page: ${(Date.now() - startTime) / 1000} seconds`);
+      }, 1000);
+      return () => clearInterval(interval);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    const timer = handleTimeSpent();
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      timer();
+    };
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -53,7 +79,7 @@ function StoryCreator() {
       
       {error && <div className="error-message">{error}</div>}
       
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="story-form">
         <div className="form-group">
           <label htmlFor="childName">Child's Name:</label>
           <input
@@ -64,6 +90,7 @@ function StoryCreator() {
             onChange={handleChange}
             required
             placeholder="Enter your child's name"
+            aria-label="Child's Name"
           />
         </div>
         
@@ -79,6 +106,7 @@ function StoryCreator() {
             min="1"
             max="12"
             placeholder="Enter your child's age"
+            aria-label="Child's Age"
           />
         </div>
         
@@ -92,10 +120,11 @@ function StoryCreator() {
             onChange={handleChange}
             required
             placeholder="e.g., dinosaurs, space, unicorns, soccer"
+            aria-label="Child's Interest"
           />
         </div>
         
-        <button type="submit" disabled={loading}>
+        <button type="submit" disabled={loading} className={`submit-button ${loading ? 'loading' : ''}`}>
           {loading ? 'Creating Story...' : 'Create Adventure!'}
         </button>
       </form>
@@ -103,4 +132,83 @@ function StoryCreator() {
   );
 }
 
-export default StoryCreator; 
+export default StoryCreator;
+```
+
+**CSS (StoryCreator.css)**
+```css
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #f0f4f8;
+  margin: 0;
+  padding: 0;
+  color: #333;
+}
+
+.form-container {
+  max-width: 600px;
+  margin: auto;
+  padding: 2rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease-in-out;
+}
+
+.form-container:hover {
+  transform: scale(1.02);
+}
+
+h2 {
+  color: #4a90e2;
+}
+
+.error-message {
+  color: #e74c3c;
+  margin-bottom: 1rem;
+}
+
+.story-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+label {
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+
+input {
+  padding: 0.8rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  transition: border-color 0.2s;
+}
+
+input:focus {
+  border-color: #4a90e2;
+  outline: none;
+}
+
+.submit-button {
+  padding: 0.8rem;
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.submit-button.loading {
+  background-color: #3498db;
+}
+
+.submit-button:hover {
+  background-color: #357ABD;
+}
+```
