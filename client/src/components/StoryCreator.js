@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+```javascript
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 function StoryCreator() {
@@ -10,6 +11,35 @@ function StoryCreator() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const [timeSpent, setTimeSpent] = useState(0);
+  const [scrollDepth, setScrollDepth] = useState(0);
+  let timer;
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+      const totalScroll = documentHeight - windowHeight;
+      setScrollDepth(Math.round((scrollTop / totalScroll) * 100));
+    };
+
+    const handleTimeSpent = () => {
+      timer = setInterval(() => {
+        setTimeSpent((prev) => prev + 1);
+      }, 1000);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    handleTimeSpent();
+
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener('scroll', handleScroll);
+      console.log('Time spent on page:', timeSpent);
+      console.log('Scroll depth:', scrollDepth);
+    };
+  }, [timeSpent, scrollDepth]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -64,6 +94,7 @@ function StoryCreator() {
             onChange={handleChange}
             required
             placeholder="Enter your child's name"
+            aria-label="Child's Name"
           />
         </div>
         
@@ -79,6 +110,7 @@ function StoryCreator() {
             min="1"
             max="12"
             placeholder="Enter your child's age"
+            aria-label="Child's Age"
           />
         </div>
         
@@ -92,15 +124,86 @@ function StoryCreator() {
             onChange={handleChange}
             required
             placeholder="e.g., dinosaurs, space, unicorns, soccer"
+            aria-label="Child's Interest"
           />
         </div>
         
-        <button type="submit" disabled={loading}>
+        <button type="submit" disabled={loading} className={`submit-button ${loading ? 'loading' : ''}`}>
           {loading ? 'Creating Story...' : 'Create Adventure!'}
         </button>
       </form>
+
+      <style jsx>{`
+        .form-container {
+          max-width: 400px;
+          margin: 0 auto;
+          padding: 20px;
+          background: #f9f9f9;
+          border-radius: 8px;
+          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+          transition: box-shadow 0.3s;
+        }
+
+        .form-container:hover {
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+          color: #333;
+          font-family: 'Arial', sans-serif;
+        }
+
+        .error-message {
+          color: red;
+        }
+
+        .form-group {
+          margin-bottom: 15px;
+        }
+
+        label {
+          display: block;
+          font-weight: bold;
+          margin-bottom: 5px;
+        }
+
+        input {
+          width: 100%;
+          padding: 10px;
+          border: 1px solid #ccc;
+          border-radius: 5px;
+          transition: border-color 0.3s;
+        }
+
+        input:focus {
+          border-color: #007BFF;
+          outline: none;
+        }
+
+        .submit-button {
+          width: 100%;
+          padding: 10px;
+          background-color: #007BFF;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+          transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .submit-button:hover {
+          background-color: #0056b3;
+          transform: translateY(-2px);
+        }
+
+        .submit-button.loading {
+          background-color: #6c757d;
+          cursor: not-allowed;
+        }
+      `}</style>
     </div>
   );
 }
 
-export default StoryCreator; 
+export default StoryCreator;
+```
